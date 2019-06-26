@@ -7,9 +7,13 @@
 package it.polito.tdp.extflightdelays;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
+import java.util.Set;
 
+import it.polito.tdp.extflightdelays.model.Airport;
 import it.polito.tdp.extflightdelays.model.Model;
+import it.polito.tdp.extflightdelays.model.Vicino;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -37,7 +41,7 @@ public class ExtFlightDelaysController {
     private Button btnAnalizza; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbBoxAeroportoPartenza"
-    private ComboBox<?> cmbBoxAeroportoPartenza; // Value injected by FXMLLoader
+    private ComboBox<Airport> cmbBoxAeroportoPartenza; // Value injected by FXMLLoader
 
     @FXML // fx:id="btnAeroportiConnessi"
     private Button btnAeroportiConnessi; // Value injected by FXMLLoader
@@ -50,16 +54,78 @@ public class ExtFlightDelaysController {
 
     @FXML
     void doAnalizzaAeroporti(ActionEvent event) {
+    	
+    	try {
+    		
+    		Double distanza = Double.parseDouble(this.distanzaMinima.getText());
+    		this.model.creaGrafo(distanza);
+    		
+    		Set<Airport> aeroporti = this.model.vertexSet();
+    		
+    		this.cmbBoxAeroportoPartenza.getItems().addAll(aeroporti);
+    		
+    	}catch(NumberFormatException e) {
+    		this.txtResult.clear();
+    		this.txtResult.appendText("Attenzione! Devi inserire un numero minimo di distanza");
+    	}
+    	
+    	
 
     }
 
     @FXML
     void doCalcolaAeroportiConnessi(ActionEvent event) {
+    	
+    	Airport aeroporto = this.cmbBoxAeroportoPartenza.getValue();
+    	
+    	if(aeroporto == null) {
+    		this.txtResult.clear();
+    		this.txtResult.appendText("Seleziona un aeroporto");
+    	}else {
+    		this.txtResult.clear();
+    		List<Vicino> vicini = this.model.getVicini(aeroporto);
+    		this.txtResult.appendText("Vicini dell'aeroporto "+aeroporto+"\n");
+    		
+    		for(Vicino v : vicini) {
+    			this.txtResult.appendText(v.toString()+"\n");
+    		}
+    	}
 
     }
 
     @FXML
     void doCercaItinerario(ActionEvent event) {
+    	
+    	Airport aeroporto = this.cmbBoxAeroportoPartenza.getValue();
+    	
+    	if(aeroporto == null) {
+    		this.txtResult.clear();
+    		this.txtResult.appendText("Seleziona un aeroporto");
+    	}else {
+    		
+    		try {
+    			
+    			Double miglia = Double.parseDouble(this.numeroVoliTxtInput.getText());
+    			List<Airport> raggiunti = this.model.cercaItinerarioDa(aeroporto,miglia);
+    			Double migliaUsati = this.model.migliaUsati();
+    			
+    			this.txtResult.clear();
+    			this.txtResult.appendText("Miglia Usati: "+migliaUsati+"\n");
+    			this.txtResult.appendText("Aeroporti raggiunti da: "+aeroporto+"\n");
+    			
+    			for(Airport a : raggiunti) {
+    				this.txtResult.appendText(a+"\n");
+    			}
+    			
+    		}catch(NumberFormatException e) {
+    			this.txtResult.clear();
+        		this.txtResult.appendText("Seleziona i miglia");
+    		}
+    		
+    		
+    	}
+    	
+    	
 
     }
 
